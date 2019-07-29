@@ -1,0 +1,16 @@
+#!/bin/bash
+
+for file in $( find $(pwd) -name '*.mp3' -o -name '*.m4a' -o -name '*.aac' -type f -not -path '*/\.*' | sort );
+do
+
+stats=$( ffprobe -v error -i $file -select_streams a:0 \
+-show_entries stream=codec_name,bit_rate,channel_layout,sample_rate,channels,max_bit_rate \
+-of default=noprint_wrappers=0:nokey=0 )
+lufs=$(  ffmpeg -i $file -af loudnorm=I=-16:dual_mono=true:TP=-1.5:LRA=11:print_format=summary \
+  -f null - 2>&1 | grep 'Input Integrated' )
+
+
+echo -e "$file\n$stats\n$lufs\n" >> lufs.all
+
+done
+
